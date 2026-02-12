@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Twin - Cement Rotary Kiln Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -27,6 +29,7 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
         .header h1 {
@@ -39,6 +42,60 @@
         .header p {
             color: #a0a0a0;
             font-size: 1.1em;
+        }
+
+        /* Admin Mode Toggle Button */
+        .admin-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 2px solid #00d4ff;
+            border-radius: 8px;
+            color: #00d4ff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .admin-toggle:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .admin-toggle.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .admin-toggle.active::before {
+            content: '🔓 ';
+        }
+
+        .admin-toggle:not(.active)::before {
+            content: '🔒 ';
+        }
+
+        /* Mode Indicator */
+        .mode-indicator {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #a0a0a0;
+        }
+
+        .mode-indicator.admin {
+            color: #00ff88;
+        }
+
+        .mode-indicator.viewer {
+            color: #ffa500;
         }
 
         .dashboard {
@@ -120,12 +177,45 @@
             padding: 25px;
             margin-bottom: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
         .controls-section h2 {
             color: #00d4ff;
             margin-bottom: 20px;
             font-size: 1.5em;
+        }
+
+        /* Locked overlay for viewer mode */
+        .controls-locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            z-index: 10;
+        }
+
+        .controls-locked-overlay.active {
+            display: flex;
+        }
+
+        .locked-message {
+            text-align: center;
+            color: #ffa500;
+            font-size: 1.2em;
+        }
+
+        .locked-message .lock-icon {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
         }
 
         .control-group {
@@ -154,6 +244,11 @@
             -webkit-appearance: none;
         }
 
+        input[type="range"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -165,6 +260,11 @@
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
         }
 
+        input[type="range"]:disabled::-webkit-slider-thumb {
+            cursor: not-allowed;
+            background: #555;
+        }
+
         input[type="range"]::-moz-range-thumb {
             width: 20px;
             height: 20px;
@@ -172,6 +272,11 @@
             background: #00d4ff;
             cursor: pointer;
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        input[type="range"]:disabled::-moz-range-thumb {
+            cursor: not-allowed;
+            background: #555;
         }
 
         .status-indicator {
@@ -427,17 +532,56 @@
             margin-bottom: 30px;
         }
 
+        /* Email notification badge */
+        .email-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: rgba(0, 212, 255, 0.9);
+            color: #1a1a2e;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.5);
+            transform: translateY(150px);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+        }
+
+        .email-notification.show {
+            transform: translateY(0);
+        }
+
         @media (max-width: 968px) {
             .two-column-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .admin-toggle {
+                position: static;
+                margin-bottom: 10px;
+                display: inline-block;
+            }
+            
+            .mode-indicator {
+                position: static;
+                display: inline-block;
+                margin-left: 10px;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
+        <button class="admin-toggle" id="admin-toggle">Admin Mode</button>
+        <div class="mode-indicator viewer" id="mode-indicator">Viewer Mode</div>
         <h1>🏭 Digital Twin Simulation – Cement Kiln</h1>
         <p>Real-time Energy Optimization & Emission Monitoring</p>
+    </div>
+
+    <!-- Email notification badge -->
+    <div class="email-notification" id="email-notification">
+        📧 Alert email sent!
     </div>
 
     <!-- KPI Dashboard -->
@@ -546,6 +690,17 @@
     <div class="controls-section">
         <h2>⚙️ Process Control Parameters</h2>
         
+        <!-- Locked overlay for viewer mode -->
+        <div class="controls-locked-overlay" id="controls-overlay">
+            <div class="locked-message">
+                <span class="lock-icon">🔒</span>
+                <div>Controls are locked in Viewer Mode</div>
+                <div style="font-size: 0.9em; margin-top: 10px; color: #a0a0a0;">
+                    Click "Admin Mode" to enable controls
+                </div>
+            </div>
+        </div>
+        
         <div class="control-group">
             <div class="control-label">
                 <span>Kiln Temperature</span>
@@ -626,85 +781,150 @@
 
     <script>
         // ============================================================
+        // ADMIN AUTHENTICATION & EMAIL CONFIGURATION
+        // ============================================================
+        
+        // IMPORTANT: Change this password to something secure
+        const ADMIN_PASSWORD = "dangote2026";
+        
+        // EmailJS Configuration
+        // STEP 1: Sign up at https://www.emailjs.com/
+        // STEP 2: Replace these with your actual EmailJS credentials
+        const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY_HERE";  // Get from EmailJS dashboard
+        const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID_HERE";  // Get from EmailJS dashboard  
+        const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID_HERE"; // Get from EmailJS dashboard
+        
+        // Initialize EmailJS
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        
+        // Admin state
+        let isAdminMode = false;
+        let overfuelingEmailSent = false;
+        let lastStatus = null;
+        
+        // ============================================================
+        // ADMIN MODE TOGGLE FUNCTION
+        // ============================================================
+        function toggleAdminMode() {
+            const adminToggle = document.getElementById('admin-toggle');
+            const modeIndicator = document.getElementById('mode-indicator');
+            const controlsOverlay = document.getElementById('controls-overlay');
+            const sliders = document.querySelectorAll('input[type="range"]');
+            
+            if (!isAdminMode) {
+                // Try to enter admin mode
+                const password = prompt('Enter admin password:');
+                
+                if (password === ADMIN_PASSWORD) {
+                    isAdminMode = true;
+                    adminToggle.classList.add('active');
+                    adminToggle.textContent = 'Admin Mode';
+                    modeIndicator.textContent = 'Admin Mode';
+                    modeIndicator.classList.remove('viewer');
+                    modeIndicator.classList.add('admin');
+                    controlsOverlay.classList.remove('active');
+                    
+                    // Enable sliders
+                    sliders.forEach(slider => slider.disabled = false);
+                    
+                    console.log('Admin mode activated');
+                } else {
+                    alert('Incorrect password. Access denied.');
+                }
+            } else {
+                // Exit admin mode
+                isAdminMode = false;
+                adminToggle.classList.remove('active');
+                adminToggle.textContent = 'Admin Mode';
+                modeIndicator.textContent = 'Viewer Mode';
+                modeIndicator.classList.remove('admin');
+                modeIndicator.classList.add('viewer');
+                controlsOverlay.classList.add('active');
+                
+                // Disable sliders
+                sliders.forEach(slider => slider.disabled = true);
+                
+                console.log('Viewer mode activated');
+            }
+        }
+        
+        // ============================================================
+        // EMAIL ALERT FUNCTION
+        // ============================================================
+        function sendOverfuelingAlert(metrics) {
+            // Prepare email parameters
+            const emailParams = {
+                to_email: 'usmanabdullah63@gmail.com',
+                subject: '⚠️ ALERT: Kiln Overfueling Detected',
+                fuel_rate: metrics.fuelRate,
+                temperature: metrics.temperature,
+                production: metrics.production,
+                co2_emissions: metrics.co2,
+                sec: metrics.sec,
+                timestamp: new Date().toLocaleString(),
+                message: 'The cement kiln has entered an OVERFUELING state. Immediate attention required.'
+            };
+            
+            // Send email via EmailJS
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, emailParams)
+                .then(function(response) {
+                    console.log('Email sent successfully!', response.status, response.text);
+                    showEmailNotification();
+                }, function(error) {
+                    console.error('Failed to send email:', error);
+                    // If EmailJS is not configured, show a console message
+                    if (error.text && error.text.includes('Service ID')) {
+                        console.warn('⚠️ EmailJS not configured yet. Follow setup instructions in the code.');
+                    }
+                });
+        }
+        
+        // Show visual notification that email was sent
+        function showEmailNotification() {
+            const notification = document.getElementById('email-notification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+        
+        // ============================================================
         // DIGITAL TWIN SIMULATION ENGINE
-        // This section simulates the cement kiln's physical behavior
         // ============================================================
 
         class CementKilnDigitalTwin {
             constructor() {
-                // Initial state parameters
-                this.temperature = 1450;      // °C
-                this.fuelRate = 8000;         // kg/hr
-                this.productionRate = 3000;   // tons/day
-                
-                // Historical data for trend chart
+                this.temperature = 1450;
+                this.fuelRate = 8000;
+                this.productionRate = 3000;
                 this.energyHistory = [];
                 this.emissionHistory = [];
                 this.timeLabels = [];
                 this.maxHistoryLength = 20;
-                
-                // Previous values for trend calculation
                 this.previousMetrics = null;
-                
-                // Benchmark values for optimization
-                this.benchmarkSEC = 3200;     // MJ/ton (industry standard)
-                this.benchmarkCO2 = 850;      // kg CO2/ton clinker
-                this.maxProductionRate = 5000; // tons/day
+                this.benchmarkSEC = 3200;
+                this.benchmarkCO2 = 850;
+                this.maxProductionRate = 5000;
             }
 
-            // ============================================================
-            // CORE DIGITAL TWIN CALCULATION ENGINE
-            // Simulates energy consumption and emission based on physics
-            // ============================================================
             calculate() {
-                // Specific Energy Consumption (SEC) calculation
-                // SEC depends on fuel rate and production efficiency
-                // Formula: (Fuel Rate * Calorific Value) / Production Rate
-                const calorificValue = 28;  // MJ/kg for typical cement fuel
+                const calorificValue = 28;
                 const hoursPerDay = 24;
-                
-                // Energy input from fuel (MJ/day)
                 const totalEnergyInput = this.fuelRate * hoursPerDay * calorificValue;
-                
-                // SEC in MJ/ton clinker
                 const sec = totalEnergyInput / this.productionRate;
-                
-                // Temperature efficiency factor (optimal at 1450°C)
                 const tempEfficiency = 1 - Math.abs(this.temperature - 1450) / 3000;
                 const adjustedSEC = sec / Math.max(tempEfficiency, 0.7);
-
-                // ============================================================
-                // CO₂ EMISSION CALCULATION
-                // Emissions come from: 1) Fuel combustion, 2) Calcination
-                // ============================================================
-                
-                // Fuel combustion emissions (kg CO2 per kg fuel)
-                const fuelEmissionFactor = 2.8;  // kg CO2/kg fuel (coal)
+                const fuelEmissionFactor = 2.8;
                 const fuelEmissions = (this.fuelRate * hoursPerDay * fuelEmissionFactor) / this.productionRate;
-                
-                // Process emissions from limestone calcination (CaCO3 → CaO + CO2)
-                const processEmissions = 525;  // kg CO2/ton clinker (stoichiometric)
-                
-                // Total CO2 intensity
+                const processEmissions = 525;
                 const totalCO2 = fuelEmissions + processEmissions;
-                
-                // ============================================================
-                // ADDITIONAL METRICS CALCULATION
-                // ============================================================
-                
-                // Thermal Efficiency (higher temp closer to 1450 = better)
                 const thermalEfficiency = Math.max(0, Math.min(100, 100 - (Math.abs(this.temperature - 1450) / 3)));
-                
-                // Oxygen level in exhaust (optimal 3-4%)
                 const optimalFuelAirRatio = this.fuelRate / 10000;
                 const oxygenLevel = 3.5 + (1 - optimalFuelAirRatio) * 2;
-                
-                // Clinker Quality Index (0-100, based on temp and fuel consistency)
                 const tempQuality = 100 - Math.abs(this.temperature - 1450) / 3;
                 const fuelQuality = 100 - Math.abs(this.fuelRate - 8000) / 100;
                 const qualityIndex = (tempQuality + fuelQuality) / 2;
-                
-                // Add realistic noise to simulate real sensor data
                 const noise = () => (Math.random() - 0.5) * 10;
                 
                 return {
@@ -720,89 +940,64 @@
                 };
             }
 
-            // ============================================================
-            // OPTIMIZATION STATUS DETERMINATION
-            // Rule-based logic to classify kiln operational state
-            // UPDATED THRESHOLDS TO PREVENT IMMEDIATE OVERFUELING
-            // ============================================================
             getStatus(metrics) {
-                // Calculate fuel to production ratio (kg/hr per ton/hr)
                 const productionPerHour = this.productionRate / 24;
                 const fuelToProductionRatio = this.fuelRate / productionPerHour;
                 
-                // High emission state: CO2 significantly above benchmark
                 if (metrics.co2 > this.benchmarkCO2 + 100) {
                     return 'high-emission';
                 }
                 
-                // Overfueling: Changed threshold from 7 to 9.5 to match slider range better
-                // With fuel rate 6000-12000 and production 2000-5000, ratio ranges from 1.2 to 6
-                // Setting threshold at 9.5 means only extreme cases trigger overfueling
                 if (fuelToProductionRatio > 80 || metrics.sec > this.benchmarkSEC + 400) {
                     return 'overfueling';
                 }
                 
-                // Optimized: within acceptable ranges
                 return 'optimized';
             }
 
-            // ============================================================
-            // AI INSIGHT GENERATION (Rule-based Expert System)
-            // Generates actionable recommendations based on current state
-            // UPDATED TO SHOW ACCURATE FUEL REDUCTION PERCENTAGES
-            // ============================================================
             generateInsights(metrics) {
                 const insights = [];
                 const productionPerHour = this.productionRate / 24;
                 
-                // SEC optimization insights
                 if (metrics.sec > this.benchmarkSEC) {
                     const excess = Math.round(((metrics.sec - this.benchmarkSEC) / this.benchmarkSEC) * 100);
                     insights.push(`⚡ Current SEC is ${excess}% above industry benchmark. Consider optimizing fuel efficiency.`);
                 }
                 
-                // Fuel rate optimization - Only suggest reduction if significantly above good range
-                const optimalFuelRate = (this.productionRate / 24) * 2.8; // ~2.8 kg fuel per kg clinker produced per hour
+                const optimalFuelRate = (this.productionRate / 24) * 2.8;
                 if (this.fuelRate > 9500) {
-                    const excessFuel = this.fuelRate - 8500; // Compare to a reasonable target of 8500
+                    const excessFuel = this.fuelRate - 8500;
                     const reduction = Math.round((excessFuel / this.fuelRate) * 100);
                     insights.push(`🔥 Reduce fuel feed by approximately ${reduction}% (${Math.round(excessFuel)} kg/hr) to lower CO₂ intensity and improve efficiency.`);
                 }
                 
-                // Temperature optimization
                 if (Math.abs(this.temperature - 1450) > 50) {
                     const direction = this.temperature > 1450 ? 'Decrease' : 'Increase';
                     const diff = Math.abs(this.temperature - 1450);
                     insights.push(`🌡️ ${direction} kiln temperature by ${diff}°C toward 1450°C optimal setpoint for better clinker quality.`);
                 }
                 
-                // CO2 emission insights
                 if (metrics.co2 > this.benchmarkCO2) {
                     const excess = Math.round(metrics.co2 - this.benchmarkCO2);
                     insights.push(`🌍 CO₂ emissions ${excess} kg/ton above target. Optimize combustion and consider alternative fuels.`);
                 }
                 
-                // Thermal efficiency insights
                 if (metrics.thermalEfficiency < 85) {
                     insights.push(`♨️ Thermal efficiency at ${metrics.thermalEfficiency}%. Check preheater and cooler performance.`);
                 }
                 
-                // Oxygen level insights
                 if (metrics.oxygenLevel > 5 || metrics.oxygenLevel < 2) {
                     insights.push(`💨 Oxygen level at ${metrics.oxygenLevel}%. Adjust air-fuel ratio for optimal combustion (target: 3-4%).`);
                 }
                 
-                // Production efficiency
                 if (this.productionRate < 2800) {
                     insights.push(`📈 Production rate below optimal. Consider increasing throughput to improve overall energy efficiency.`);
                 }
                 
-                // Quality index
                 if (metrics.qualityIndex < 80) {
                     insights.push(`🎯 Clinker quality index at ${metrics.qualityIndex}/100. Stabilize temperature and fuel feed for consistency.`);
                 }
                 
-                // Positive feedback when optimized
                 if (insights.length === 0) {
                     insights.push(`✅ Kiln operating within optimal parameters. Maintain current settings.`);
                     insights.push(`💡 Energy efficiency at benchmark levels. Continue monitoring for drift.`);
@@ -812,10 +1007,6 @@
                 return insights;
             }
 
-            // ============================================================
-            // ALERT GENERATION
-            // Generates critical alerts based on operational limits
-            // ============================================================
             generateAlerts(metrics) {
                 const alerts = [];
                 
@@ -846,7 +1037,6 @@
                 return alerts;
             }
 
-            // Calculate trend direction
             getTrend(current, previous) {
                 if (!previous) return { direction: 'stable', symbol: '━' };
                 const diff = current - previous;
@@ -856,15 +1046,12 @@
                     : { direction: 'down', symbol: '▼' };
             }
 
-            // Update historical data for trend chart
             updateHistory(metrics) {
                 const timestamp = new Date().toLocaleTimeString();
-                
                 this.energyHistory.push(metrics.sec);
                 this.emissionHistory.push(metrics.co2);
                 this.timeLabels.push(timestamp);
                 
-                // Keep only last 20 data points
                 if (this.energyHistory.length > this.maxHistoryLength) {
                     this.energyHistory.shift();
                     this.emissionHistory.shift();
@@ -874,13 +1061,10 @@
         }
 
         // ============================================================
-        // INITIALIZE DIGITAL TWIN INSTANCE
+        // INITIALIZE
         // ============================================================
         const digitalTwin = new CementKilnDigitalTwin();
 
-        // ============================================================
-        // CHART INITIALIZATION
-        // ============================================================
         const ctx = document.getElementById('trendChart').getContext('2d');
         const trendChart = new Chart(ctx, {
             type: 'line',
@@ -938,9 +1122,6 @@
             }
         });
 
-        // ============================================================
-        // GAUGE UPDATE FUNCTION
-        // ============================================================
         function updateGauge(elementId, percentage) {
             const gauge = document.getElementById(elementId);
             const rotation = (percentage / 100) * 360;
@@ -948,13 +1129,11 @@
         }
 
         // ============================================================
-        // UI UPDATE FUNCTION
+        // MAIN UPDATE FUNCTION (with email alerts)
         // ============================================================
         function updateDashboard() {
-            // Calculate current metrics from digital twin
             const metrics = digitalTwin.calculate();
             
-            // Update KPI cards with values
             document.getElementById('energy-value').innerHTML = `${metrics.energy}<span class="kpi-unit">MJ/ton</span>`;
             document.getElementById('fuel-value').innerHTML = `${metrics.fuelRate}<span class="kpi-unit">kg/hr</span>`;
             document.getElementById('temp-value').innerHTML = `${metrics.temperature}<span class="kpi-unit">°C</span>`;
@@ -965,7 +1144,6 @@
             document.getElementById('oxygen-value').innerHTML = `${metrics.oxygenLevel}<span class="kpi-unit">%</span>`;
             document.getElementById('quality-value').innerHTML = `${metrics.qualityIndex}<span class="kpi-unit">/100</span>`;
             
-            // Update trends
             if (digitalTwin.previousMetrics) {
                 const updateTrend = (id, current, previous, lowerIsBetter = false) => {
                     const trend = digitalTwin.getTrend(current, previous);
@@ -989,7 +1167,6 @@
             
             digitalTwin.previousMetrics = metrics;
             
-            // Update efficiency gauges
             const energyEfficiency = Math.max(0, Math.min(100, 100 - ((metrics.sec - digitalTwin.benchmarkSEC) / digitalTwin.benchmarkSEC) * 100));
             const emissionControl = Math.max(0, Math.min(100, 100 - ((metrics.co2 - digitalTwin.benchmarkCO2) / digitalTwin.benchmarkCO2) * 100));
             const productionTarget = (digitalTwin.productionRate / digitalTwin.maxProductionRate) * 100;
@@ -1005,7 +1182,6 @@
             document.getElementById('production-gauge-val').textContent = `${Math.round(productionTarget)}%`;
             document.getElementById('overall-gauge-val').textContent = `${Math.round(overallPerformance)}%`;
             
-            // Update performance bars
             const fuelEfficiency = Math.max(0, Math.min(100, 100 - ((digitalTwin.fuelRate - 8000) / 8000) * 50));
             const heatRecovery = Math.min(100, metrics.thermalEfficiency + 10);
             const combustionEfficiency = Math.max(0, 100 - Math.abs(metrics.oxygenLevel - 3.5) * 10);
@@ -1013,17 +1189,16 @@
             
             document.getElementById('fuel-efficiency-bar').style.width = `${fuelEfficiency}%`;
             document.getElementById('fuel-efficiency-val').textContent = `${Math.round(fuelEfficiency)}%`;
-            
             document.getElementById('heat-recovery-bar').style.width = `${heatRecovery}%`;
             document.getElementById('heat-recovery-val').textContent = `${Math.round(heatRecovery)}%`;
-            
             document.getElementById('combustion-bar').style.width = `${combustionEfficiency}%`;
             document.getElementById('combustion-val').textContent = `${Math.round(combustionEfficiency)}%`;
-            
             document.getElementById('environmental-bar').style.width = `${environmentalCompliance}%`;
             document.getElementById('environmental-val').textContent = `${Math.round(environmentalCompliance)}%`;
             
-            // Update status badge
+            // ============================================================
+            // STATUS CHECK & EMAIL ALERT TRIGGER
+            // ============================================================
             const status = digitalTwin.getStatus(metrics);
             const statusBadge = document.getElementById('status-badge');
             statusBadge.className = 'status-badge';
@@ -1031,22 +1206,36 @@
             if (status === 'optimized') {
                 statusBadge.classList.add('status-optimized');
                 statusBadge.textContent = '✓ OPTIMIZED';
+                // Reset email flag when status returns to normal
+                if (lastStatus === 'overfueling') {
+                    overfuelingEmailSent = false;
+                }
             } else if (status === 'overfueling') {
                 statusBadge.classList.add('status-overfueling');
                 statusBadge.textContent = '⚠ OVERFUELING';
+                
+                // Send email alert if not already sent
+                if (!overfuelingEmailSent) {
+                    console.log('🚨 OVERFUELING DETECTED - Sending email alert...');
+                    sendOverfuelingAlert(metrics);
+                    overfuelingEmailSent = true;
+                }
             } else {
                 statusBadge.classList.add('status-high-emission');
                 statusBadge.textContent = '✕ HIGH EMISSION';
+                if (lastStatus === 'overfueling') {
+                    overfuelingEmailSent = false;
+                }
             }
             
-            // Generate and display AI insights
+            lastStatus = status;
+            
             const insights = digitalTwin.generateInsights(metrics);
             const insightsContainer = document.getElementById('insights-container');
             insightsContainer.innerHTML = insights.map(insight => 
                 `<div class="insight-item">${insight}</div>`
             ).join('');
             
-            // Generate and display alerts
             const alerts = digitalTwin.generateAlerts(metrics);
             const alertsContainer = document.getElementById('alerts-container');
             if (alerts.length === 0) {
@@ -1057,7 +1246,6 @@
                 ).join('');
             }
             
-            // Update historical data and chart
             digitalTwin.updateHistory(metrics);
             trendChart.data.labels = digitalTwin.timeLabels;
             trendChart.data.datasets[0].data = digitalTwin.energyHistory;
@@ -1066,34 +1254,39 @@
         }
 
         // ============================================================
-        // SLIDER EVENT HANDLERS
-        // Update digital twin parameters when user adjusts controls
+        // EVENT LISTENERS
         // ============================================================
+        document.getElementById('admin-toggle').addEventListener('click', toggleAdminMode);
+
         document.getElementById('temp-slider').addEventListener('input', function(e) {
+            if (!isAdminMode) return;
             digitalTwin.temperature = parseInt(e.target.value);
             document.getElementById('temp-slider-val').textContent = e.target.value;
             updateDashboard();
         });
 
         document.getElementById('fuel-slider').addEventListener('input', function(e) {
+            if (!isAdminMode) return;
             digitalTwin.fuelRate = parseInt(e.target.value);
             document.getElementById('fuel-slider-val').textContent = e.target.value;
             updateDashboard();
         });
 
         document.getElementById('production-slider').addEventListener('input', function(e) {
+            if (!isAdminMode) return;
             digitalTwin.productionRate = parseInt(e.target.value);
             document.getElementById('production-slider-val').textContent = e.target.value;
             updateDashboard();
         });
 
         // ============================================================
-        // REAL-TIME SIMULATION
-        // Auto-update every 2 seconds to simulate live sensor data
+        // INITIALIZE - Start in viewer mode
         // ============================================================
+        document.getElementById('controls-overlay').classList.add('active');
+        document.querySelectorAll('input[type="range"]').forEach(slider => slider.disabled = true);
+        
         updateDashboard();
         setInterval(updateDashboard, 2000);
     </script>
 </body>
-
 </html>
