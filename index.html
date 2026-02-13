@@ -839,20 +839,19 @@
         // ============================================================
         
         const ADMIN_PASSWORD = "dangote2026";
-        
-        // EmailJS Configuration
-        const EMAILJS_PUBLIC_KEY = "WVuG-Otxv4wdEbpn6";
-        const EMAILJS_SERVICE_ID = "service_v0ebtkh";  
-        const EMAILJS_TEMPLATE_ID = "template_9joi1c6";
-        
-        // Twilio SMS Configuration
-        const SMS_WEBHOOK_URL = "YOUR_TWILIO_WEBHOOK_URL_HERE";
-        const SMS_PHONE_NUMBER = "+234_YOUR_PHONE_NUMBER";
-        
-        // Initialize EmailJS
-        if (EMAILJS_PUBLIC_KEY !== "WVuG-Otxv4wdEbpn6") {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
-        }
+
+    // EmailJS Configuration
+    const EMAILJS_PUBLIC_KEY = "WVuG-Otxv4wdEbpn6";
+    const EMAILJS_SERVICE_ID = "service_v0ebtkh";
+    const EMAILJS_TEMPLATE_ID = "template_9joi1c6";
+
+    // SMS via EmailJS (NOT Twilio)
+    const SMS_PHONE_NUMBER = "234XXXXXXXXXX"; // No + sign for template safety
+
+    // Initialize EmailJS properly (ALWAYS initialize)
+    emailjs.init({
+        publicKey: EMAILJS_PUBLIC_KEY,
+    });
         
         // Admin and alert state
         let isAdminMode = false;
