@@ -46,7 +46,6 @@
             font-size: 1.1em;
         }
 
-        /* Admin Mode Toggle Button */
         .admin-toggle {
             position: absolute;
             top: 20px;
@@ -80,7 +79,6 @@
             content: '🔒 ';
         }
 
-        /* Mode Indicator */
         .mode-indicator {
             position: absolute;
             top: 60px;
@@ -100,7 +98,6 @@
             color: #ffa500;
         }
 
-        /* 3D Kiln Container */
         .kiln-3d-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
@@ -212,7 +209,6 @@
             font-size: 1.5em;
         }
 
-        /* Locked overlay for viewer mode */
         .controls-locked-overlay {
             position: absolute;
             top: 0;
@@ -558,7 +554,6 @@
             margin-bottom: 30px;
         }
 
-        /* Notification badges */
         .notification-badge {
             position: fixed;
             bottom: 20px;
@@ -623,7 +618,6 @@
         <p>Real-time Energy Optimization & Emission Monitoring</p>
     </div>
 
-    <!-- Notification badges -->
     <div class="notification-badge" id="email-notification">
         📧 Email alert sent!
     </div>
@@ -631,15 +625,12 @@
         📱 SMS alert sent!
     </div>
 
-    <!-- ============================================================ -->
-    <!-- 3D KILN MODEL SECTION -->
-    <!-- ============================================================ -->
     <div class="kiln-3d-container">
         <h2>🔥 3D Rotary Kiln Visualization</h2>
         <div id="kiln-3d-canvas"></div>
     </div>
 
-    <!-- KPI Dashboard -->
+    <!-- KPI Dashboard - NOW WITH 17 CARDS -->
     <div class="dashboard">
         <div class="kpi-card">
             <div class="kpi-label">Energy Consumption</div>
@@ -686,15 +677,55 @@
             <div class="kpi-value" id="quality-value">0<span class="kpi-unit">/100</span></div>
             <div class="kpi-trend" id="quality-trend"></div>
         </div>
+        
+        <!-- NEW PARAMETER CARDS -->
+        <div class="kpi-card">
+            <div class="kpi-label">Kiln Pressure</div>
+            <div class="kpi-value" id="pressure-value">0<span class="kpi-unit">bar</span></div>
+            <div class="kpi-trend" id="pressure-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Gas Flow Rate</div>
+            <div class="kpi-value" id="flowrate-value">0<span class="kpi-unit">m³/min</span></div>
+            <div class="kpi-trend" id="flowrate-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Rotational Speed</div>
+            <div class="kpi-value" id="rpm-value">0<span class="kpi-unit">RPM</span></div>
+            <div class="kpi-trend" id="rpm-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Vibration Level</div>
+            <div class="kpi-value" id="vibration-value">0<span class="kpi-unit">mm/s</span></div>
+            <div class="kpi-trend" id="vibration-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Mechanical Health</div>
+            <div class="kpi-value" id="mechanical-value">0<span class="kpi-unit">%</span></div>
+            <div class="kpi-trend" id="mechanical-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Humidity</div>
+            <div class="kpi-value" id="humidity-value">0<span class="kpi-unit">%</span></div>
+            <div class="kpi-trend" id="humidity-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Moisture Content</div>
+            <div class="kpi-value" id="moisture-value">0<span class="kpi-unit">%</span></div>
+            <div class="kpi-trend" id="moisture-trend"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Ash Content</div>
+            <div class="kpi-value" id="ash-value">0<span class="kpi-unit">%</span></div>
+            <div class="kpi-trend" id="ash-trend"></div>
+        </div>
     </div>
 
-    <!-- Status Indicator -->
     <div class="status-indicator">
         <h2>Operational Status</h2>
         <div class="status-badge" id="status-badge">INITIALIZING</div>
     </div>
 
-    <!-- Efficiency Gauges -->
     <div class="efficiency-gauge">
         <h2>⚡ Real-Time Efficiency Indicators</h2>
         <div class="gauge-container">
@@ -741,7 +772,6 @@
         </div>
     </div>
 
-    <!-- Control Sliders -->
     <div class="controls-section">
         <h2>⚙️ Process Control Parameters</h2>
         
@@ -781,20 +811,17 @@
     </div>
 
     <div class="two-column-grid">
-        <!-- AI Insight Panel -->
         <div class="ai-insight-panel">
             <h2><span class="ai-icon">🤖</span> AI Optimization Insights</h2>
             <div id="insights-container"></div>
         </div>
 
-        <!-- Alerts Panel -->
         <div class="alerts-panel">
             <h2><span class="alert-icon">⚠️</span> System Alerts</h2>
             <div id="alerts-container"></div>
         </div>
     </div>
 
-    <!-- Performance Metrics -->
     <div class="performance-metrics">
         <h2>📊 Performance Metrics vs. Benchmark</h2>
         <div class="metric-row">
@@ -827,7 +854,6 @@
         </div>
     </div>
 
-    <!-- Trend Chart -->
     <div class="chart-container">
         <h2>📈 Energy & Emission Trends (Last 20 Updates)</h2>
         <canvas id="trendChart"></canvas>
@@ -835,32 +861,33 @@
 
     <script>
         // ============================================================
-        // CONFIGURATION - UPDATE THESE VALUES
+        // CONFIGURATION
         // ============================================================
         
         const ADMIN_PASSWORD = "dangote2026";
 
-    // EmailJS Configuration
-    const EMAILJS_PUBLIC_KEY = "WVuG-Otxv4wdEbpn6";
-    const EMAILJS_SERVICE_ID = "service_v0ebtkh";
-    const EMAILJS_TEMPLATE_ID = "template_9joi1c6";
+        // EmailJS Configuration
+        const EMAILJS_PUBLIC_KEY = "WVuG-Otxv4wdEbpn6";
+        const EMAILJS_SERVICE_ID = "service_v0ebtkh";
+        const EMAILJS_TEMPLATE_ID = "template_9joi1c6";
+        const SMS_TEMPLATE_ID = "template_sms456"; // Create this in EmailJS for SMS
 
-    // SMS via EmailJS (NOT Twilio)
-    const SMS_PHONE_NUMBER = "08143310460"; // No + sign for template safety
+        // SMS Configuration (Email-to-SMS gateway)
+        const SMS_PHONE_NUMBER = "08143310460";
+        const SMS_EMAIL_GATEWAY = SMS_PHONE_NUMBER + "@sms.emailjs.com"; // EmailJS SMS gateway
 
-    // Initialize EmailJS properly (ALWAYS initialize)
-    emailjs.init({
-        publicKey: EMAILJS_PUBLIC_KEY,
-    });
+        // Initialize EmailJS
+        emailjs.init({
+            publicKey: EMAILJS_PUBLIC_KEY,
+        });
         
-        // Admin and alert state
         let isAdminMode = false;
         let overfuelingEmailSent = false;
         let overfuelingSMSSent = false;
         let lastStatus = null;
         
         // ============================================================
-        // 3D KILN MODEL SETUP
+        // 3D KILN MODEL
         // ============================================================
         
         let scene, camera, renderer, kiln, flame, smokeParticles = [];
@@ -1001,8 +1028,8 @@
         function updateKilnVisual(metrics) {
             if (!kiln) return;
             
-            const fuelRateNormalized = (digitalTwin.fuelRate - 6000) / 6000;
-            kilnRotationSpeed = 0.001 + (fuelRateNormalized * 0.004);
+            // Use actual rotational speed from metrics
+            kilnRotationSpeed = metrics.rotationalSpeed * 0.00175;
             
             const tempNormalized = (digitalTwin.temperature - 1300) / 300;
             const heatColor = new THREE.Color();
@@ -1013,6 +1040,7 @@
             kiln.material.emissiveIntensity = tempNormalized * 0.5;
             
             if (flame) {
+                const fuelRateNormalized = (digitalTwin.fuelRate - 6000) / 6000;
                 flame.material.opacity = 0.5 + fuelRateNormalized * 0.5;
                 flame.scale.x = 0.8 + fuelRateNormalized * 0.4;
                 flame.scale.y = 0.8 + fuelRateNormalized * 0.4;
@@ -1074,42 +1102,30 @@
                 message: 'The cement kiln has entered an OVERFUELING state. Immediate attention required.'
             };
             
-            if (EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY_HERE") {
-                emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, emailParams)
-                    .then(function(response) {
-                        console.log('✅ Email sent successfully!', response.status);
-                        showNotification('email');
-                    }, function(error) {
-                        console.error('❌ Failed to send email:', error);
-                    });
-            } else {
-                console.warn('⚠️ EmailJS not configured. Email alert skipped.');
-            }
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, emailParams)
+                .then(function(response) {
+                    console.log('✅ Email sent successfully!', response.status);
+                    showNotification('email');
+                }, function(error) {
+                    console.error('❌ Failed to send email:', error);
+                });
         }
         
         function sendSMSAlert(metrics) {
-            const smsData = {
-                phone: SMS_PHONE_NUMBER,
-                message: `🚨 CEMENT KILN ALERT: OVERFUELING DETECTED\n\nFuel: ${metrics.fuelRate} kg/hr\nTemp: ${metrics.temperature}°C\nCO2: ${metrics.co2} kg/ton\n\nTime: ${new Date().toLocaleTimeString()}\n\nTake immediate action!`
+            // SMS via EmailJS email-to-SMS gateway
+            const smsParams = {
+                to_email: SMS_EMAIL_GATEWAY,
+                message: `KILN ALERT: Fuel ${metrics.fuelRate}kg/hr, Temp ${metrics.temperature}C, CO2 ${metrics.co2}kg/t. ${new Date().toLocaleTimeString()}`
             };
             
-            if (SMS_WEBHOOK_URL !== "YOUR_TWILIO_WEBHOOK_URL_HERE") {
-                fetch(SMS_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(smsData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('✅ SMS sent successfully!', data);
+            emailjs.send(EMAILJS_SERVICE_ID, SMS_TEMPLATE_ID, smsParams)
+                .then(response => {
+                    console.log('✅ SMS sent via EmailJS!', response);
                     showNotification('sms');
                 })
                 .catch(error => {
-                    console.error('❌ Failed to send SMS:', error);
+                    console.error('❌ SMS failed:', error);
                 });
-            } else {
-                console.warn('⚠️ SMS webhook not configured. SMS alert skipped.');
-            }
         }
         
         // ============================================================
@@ -1147,7 +1163,7 @@
         }
         
         // ============================================================
-        // DIGITAL TWIN ENGINE
+        // DIGITAL TWIN ENGINE (ENHANCED WITH NEW PARAMETERS)
         // ============================================================
         
         class CementKilnDigitalTwin {
@@ -1184,6 +1200,34 @@
                 const qualityIndex = (tempQuality + fuelQuality) / 2;
                 const noise = () => (Math.random() - 0.5) * 10;
                 
+                // NEW PARAMETERS
+                const basePressure = 1.5;
+                const pressureVariation = (this.fuelRate / 10000) * 0.3 + (this.temperature - 1450) / 1000;
+                const pressure = basePressure + pressureVariation;
+                
+                const baseFlowRate = 200;
+                const flowRate = baseFlowRate * (this.productionRate / 3000);
+                
+                const baseRPM = 3.5;
+                const rotationalSpeed = baseRPM * (this.fuelRate / 8000);
+                
+                const baseVibration = 2.5;
+                const vibrationFactor = Math.abs(this.temperature - 1450) / 500;
+                const vibration = baseVibration + vibrationFactor + (Math.random() * 0.5);
+                
+                const tempStability = 100 - Math.abs(this.temperature - 1450) / 3;
+                const vibrationHealth = Math.max(0, 100 - (vibration - 2.5) * 20);
+                const mechanicalHealth = (tempStability + vibrationHealth) / 2;
+                
+                const baseHumidity = 8;
+                const humidity = baseHumidity + (Math.random() - 0.5) * 2;
+                
+                const baseMoisture = 5;
+                const moisture = baseMoisture + (Math.random() - 0.5) * 1.5;
+                
+                const baseAsh = 12;
+                const ashContent = baseAsh + (this.fuelRate - 8000) / 1000;
+                
                 return {
                     energy: Math.round(adjustedSEC + noise()),
                     fuelRate: Math.round(this.fuelRate + noise()),
@@ -1193,7 +1237,15 @@
                     sec: Math.round(adjustedSEC + noise()),
                     thermalEfficiency: Math.round(thermalEfficiency * 10) / 10,
                     oxygenLevel: Math.round(oxygenLevel * 10) / 10,
-                    qualityIndex: Math.round(qualityIndex)
+                    qualityIndex: Math.round(qualityIndex),
+                    pressure: Math.round(pressure * 100) / 100,
+                    flowRate: Math.round(flowRate + noise() * 2),
+                    rotationalSpeed: Math.round(rotationalSpeed * 100) / 100,
+                    vibration: Math.round(vibration * 100) / 100,
+                    mechanicalHealth: Math.round(mechanicalHealth),
+                    humidity: Math.round(humidity * 10) / 10,
+                    moisture: Math.round(moisture * 10) / 10,
+                    ashContent: Math.round(ashContent * 10) / 10
                 };
             }
 
@@ -1253,6 +1305,27 @@
                     insights.push(`🎯 Clinker quality index at ${metrics.qualityIndex}/100. Stabilize temperature and fuel feed for consistency.`);
                 }
                 
+                // NEW INSIGHTS
+                if (metrics.vibration > 3.5) {
+                    insights.push(`📳 Vibration at ${metrics.vibration} mm/s. Check bearing alignment and tire wear.`);
+                }
+                
+                if (metrics.mechanicalHealth < 80) {
+                    insights.push(`🔧 Mechanical health at ${metrics.mechanicalHealth}%. Schedule predictive maintenance.`);
+                }
+                
+                if (metrics.humidity > 10) {
+                    insights.push(`💧 Humidity at ${metrics.humidity}%. Consider pre-drying raw materials.`);
+                }
+                
+                if (metrics.moisture > 6) {
+                    insights.push(`💦 Moisture content ${metrics.moisture}%. Increase drying time to improve efficiency.`);
+                }
+                
+                if (metrics.ashContent > 13) {
+                    insights.push(`🌫️ Ash content ${metrics.ashContent}%. Consider alternative fuel or better fuel processing.`);
+                }
+                
                 if (insights.length === 0) {
                     insights.push(`✅ Kiln operating within optimal parameters. Maintain current settings.`);
                     insights.push(`💡 Energy efficiency at benchmark levels. Continue monitoring for drift.`);
@@ -1287,6 +1360,27 @@
                 
                 if (metrics.qualityIndex < 70) {
                     alerts.push({ icon: '⚠️', message: 'Quality Alert: Clinker quality degrading - check process stability.' });
+                }
+                
+                // NEW ALERTS
+                if (metrics.pressure > 2.0) {
+                    alerts.push({ icon: '⚠️', message: 'Alert: Kiln pressure exceeds normal operating range.' });
+                }
+                
+                if (metrics.vibration > 4.5) {
+                    alerts.push({ icon: '📳', message: 'Warning: Excessive vibration detected - check mechanical alignment.' });
+                }
+                
+                if (metrics.mechanicalHealth < 70) {
+                    alerts.push({ icon: '🔧', message: 'Maintenance Alert: Mechanical health degrading - schedule inspection.' });
+                }
+                
+                if (metrics.humidity > 12) {
+                    alerts.push({ icon: '💧', message: 'Alert: High humidity affecting combustion efficiency.' });
+                }
+                
+                if (metrics.ashContent > 15) {
+                    alerts.push({ icon: '🌫️', message: 'Warning: Excessive ash content - check fuel quality.' });
                 }
                 
                 return alerts;
@@ -1385,12 +1479,13 @@
         }
 
         // ============================================================
-        // MAIN UPDATE FUNCTION
+        // MAIN UPDATE FUNCTION (WITH NEW PARAMETERS)
         // ============================================================
         
         function updateDashboard() {
             const metrics = digitalTwin.calculate();
             
+            // Original parameters
             document.getElementById('energy-value').innerHTML = `${metrics.energy}<span class="kpi-unit">MJ/ton</span>`;
             document.getElementById('fuel-value').innerHTML = `${metrics.fuelRate}<span class="kpi-unit">kg/hr</span>`;
             document.getElementById('temp-value').innerHTML = `${metrics.temperature}<span class="kpi-unit">°C</span>`;
@@ -1400,6 +1495,16 @@
             document.getElementById('thermal-eff-value').innerHTML = `${metrics.thermalEfficiency}<span class="kpi-unit">%</span>`;
             document.getElementById('oxygen-value').innerHTML = `${metrics.oxygenLevel}<span class="kpi-unit">%</span>`;
             document.getElementById('quality-value').innerHTML = `${metrics.qualityIndex}<span class="kpi-unit">/100</span>`;
+            
+            // NEW PARAMETERS
+            document.getElementById('pressure-value').innerHTML = `${metrics.pressure}<span class="kpi-unit">bar</span>`;
+            document.getElementById('flowrate-value').innerHTML = `${metrics.flowRate}<span class="kpi-unit">m³/min</span>`;
+            document.getElementById('rpm-value').innerHTML = `${metrics.rotationalSpeed}<span class="kpi-unit">RPM</span>`;
+            document.getElementById('vibration-value').innerHTML = `${metrics.vibration}<span class="kpi-unit">mm/s</span>`;
+            document.getElementById('mechanical-value').innerHTML = `${metrics.mechanicalHealth}<span class="kpi-unit">%</span>`;
+            document.getElementById('humidity-value').innerHTML = `${metrics.humidity}<span class="kpi-unit">%</span>`;
+            document.getElementById('moisture-value').innerHTML = `${metrics.moisture}<span class="kpi-unit">%</span>`;
+            document.getElementById('ash-value').innerHTML = `${metrics.ashContent}<span class="kpi-unit">%</span>`;
             
             if (digitalTwin.previousMetrics) {
                 const updateTrend = (id, current, previous, lowerIsBetter = false) => {
@@ -1411,6 +1516,7 @@
                     el.innerHTML = `<span class="${trendClass}">${trend.symbol} ${Math.abs(Math.round(current - previous))}</span>`;
                 };
                 
+                // Original trends
                 updateTrend('energy-trend', metrics.energy, digitalTwin.previousMetrics.energy, true);
                 updateTrend('fuel-trend', metrics.fuelRate, digitalTwin.previousMetrics.fuelRate, true);
                 updateTrend('temp-trend', metrics.temperature, digitalTwin.previousMetrics.temperature, false);
@@ -1420,6 +1526,16 @@
                 updateTrend('thermal-trend', metrics.thermalEfficiency, digitalTwin.previousMetrics.thermalEfficiency, false);
                 updateTrend('oxygen-trend', metrics.oxygenLevel, digitalTwin.previousMetrics.oxygenLevel, false);
                 updateTrend('quality-trend', metrics.qualityIndex, digitalTwin.previousMetrics.qualityIndex, false);
+                
+                // NEW TRENDS
+                updateTrend('pressure-trend', metrics.pressure, digitalTwin.previousMetrics.pressure, false);
+                updateTrend('flowrate-trend', metrics.flowRate, digitalTwin.previousMetrics.flowRate, false);
+                updateTrend('rpm-trend', metrics.rotationalSpeed, digitalTwin.previousMetrics.rotationalSpeed, false);
+                updateTrend('vibration-trend', metrics.vibration, digitalTwin.previousMetrics.vibration, true);
+                updateTrend('mechanical-trend', metrics.mechanicalHealth, digitalTwin.previousMetrics.mechanicalHealth, false);
+                updateTrend('humidity-trend', metrics.humidity, digitalTwin.previousMetrics.humidity, false);
+                updateTrend('moisture-trend', metrics.moisture, digitalTwin.previousMetrics.moisture, true);
+                updateTrend('ash-trend', metrics.ashContent, digitalTwin.previousMetrics.ashContent, true);
             }
             
             digitalTwin.previousMetrics = metrics;
@@ -1453,7 +1569,6 @@
             document.getElementById('environmental-bar').style.width = `${environmentalCompliance}%`;
             document.getElementById('environmental-val').textContent = `${Math.round(environmentalCompliance)}%`;
             
-            // Status and Alerts
             const status = digitalTwin.getStatus(metrics);
             const statusBadge = document.getElementById('status-badge');
             statusBadge.className = 'status-badge';
@@ -1492,7 +1607,6 @@
                 `<div class="insight-item">${insight}</div>`
             ).join('');
             
-            // FIXED: System Alerts Display
             const alerts = digitalTwin.generateAlerts(metrics);
             const alertsContainer = document.getElementById('alerts-container');
             if (alerts.length === 0) {
@@ -1509,7 +1623,6 @@
             trendChart.data.datasets[1].data = digitalTwin.emissionHistory;
             trendChart.update('none');
             
-            // Update 3D Kiln Visual
             updateKilnVisual(metrics);
         }
 
@@ -1547,11 +1660,9 @@
         document.getElementById('controls-overlay').classList.add('active');
         document.querySelectorAll('input[type="range"]').forEach(slider => slider.disabled = true);
         
-        // Initialize 3D kiln
         init3DKiln();
         animate3DKiln();
         
-        // Start dashboard updates
         updateDashboard();
         setInterval(updateDashboard, 2000);
     </script>
