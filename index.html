@@ -841,16 +841,16 @@
         const ADMIN_PASSWORD = "dangote2026";
         
         // EmailJS Configuration
-        const EMAILJS_PUBLIC_KEY = "WVuG-Otxv4wdEbpn6";
-        const EMAILJS_SERVICE_ID = "service_v0ebtkh";  
-        const EMAILJS_TEMPLATE_ID = "template_9joi1c6";
+        const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY_HERE";
+        const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID_HERE";  
+        const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID_HERE";
         
-        // EmailJS SMS Configuration
-        const SMS_TEMPLATE_ID = "template_qkr390c";
-        const SMS_PHONE_NUMBER = "08143310460@mtnnigeria.net";
+        // Twilio SMS Configuration
+        const SMS_WEBHOOK_URL = "YOUR_TWILIO_WEBHOOK_URL_HERE";
+        const SMS_PHONE_NUMBER = "+234_YOUR_PHONE_NUMBER";
         
         // Initialize EmailJS
-        if (EMAILJS_PUBLIC_KEY !== "WVuG-Otxv4wdEbpn6") {
+        if (EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY_HERE") {
             emailjs.init(EMAILJS_PUBLIC_KEY);
         }
         
@@ -1089,19 +1089,27 @@
         }
         
         function sendSMSAlert(metrics) {
-            const smsParams = {
-                to_sms_email: SMS_PHONE_NUMBER,  // This is now an email address
-                message: `KILN ALERT: Overfueling! Fuel: ${metrics.fuelRate}kg/hr, Temp: ${metrics.temperature}C. Check dashboard.`
+            const smsData = {
+                phone: SMS_PHONE_NUMBER,
+                message: `🚨 CEMENT KILN ALERT: OVERFUELING DETECTED\n\nFuel: ${metrics.fuelRate} kg/hr\nTemp: ${metrics.temperature}°C\nCO2: ${metrics.co2} kg/ton\n\nTime: ${new Date().toLocaleTimeString()}\n\nTake immediate action!`
             };
-    
-            if (SMS_TEMPLATE_ID !== "YOUR_SMS_TEMPLATE_ID_HERE") {
-                emailjs.send(EMAILJS_SERVICE_ID, SMS_TEMPLATE_ID, smsParams)
-                    .then(function(response) {
-                        console.log('✅ SMS sent!', response.status);
-                        showSMSNotification();
-                    }, function(error) {
-                        console.error('❌ SMS failed:', error);
-                    });
+            
+            if (SMS_WEBHOOK_URL !== "YOUR_TWILIO_WEBHOOK_URL_HERE") {
+                fetch(SMS_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(smsData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('✅ SMS sent successfully!', data);
+                    showNotification('sms');
+                })
+                .catch(error => {
+                    console.error('❌ Failed to send SMS:', error);
+                });
+            } else {
+                console.warn('⚠️ SMS webhook not configured. SMS alert skipped.');
             }
         }
         
